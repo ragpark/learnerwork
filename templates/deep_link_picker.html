@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deep Link Picker</title>
+</head>
+<body>
+    <h2>Select Content to Return to LMS</h2>
+    <form action="/deep_link_picker" method="post">
+        <input type="hidden" name="deep_link_return_url" value="{{ data['https://purl.imsglobal.org/spec/lti/claim/deep_linking_settings']['deep_link_return_url'] }}">
+        <label>Title: <input type="text" name="title" value="Sample Artefact" /></label><br/>
+        <label>Content URL: <input type="text" name="content_url" value="https://your-tool.example.com/content/artefact123" /></label><br/>
+        <input type="submit" value="Submit Content" />
+    </form>
+</body>
+</html>
