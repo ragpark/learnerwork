@@ -46,6 +46,16 @@ Run the automated tests with:
 pytest
 ```
 
+Set `PORT` and `HOST` environment variables if deploying to a platform like Railway. By default the app runs on `0.0.0.0:5000`.
+
+### Testing
+
+Run the automated tests with:
+
+```bash
+pytest
+```
+
 ## Endpoints
 
 - `/oidc/initiate`: Placeholder for OIDC login
