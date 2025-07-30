@@ -17,6 +17,10 @@ openssl genrsa -out keys/private.key 2048
 openssl rsa -in keys/private.key -pubout -out keys/public.key
 ```
 
+The repository includes a `keys/` directory with a placeholder file so it is
+created during deployment. Make sure to generate the key pair before running or
+deploying the app.
+
 3. Run the app:
 
 ```bash
@@ -27,6 +31,16 @@ python app.py
 
 ```bash
 ngrok http 5000
+```
+
+Set `PORT` and `HOST` environment variables if deploying to a platform like Railway. By default the app runs on `0.0.0.0:5000`.
+
+### Testing
+
+Run the automated tests with:
+
+```bash
+pytest
 ```
 
 ## Endpoints
