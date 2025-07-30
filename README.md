@@ -10,6 +10,7 @@ A FastAPI-based service for selectively pushing learner content from your LMS to
 - **Background Processing**: Asynchronous content delivery
 - **Real-time Status**: WebSocket support for push status monitoring
 - **Railway.app Ready**: Optimized for easy deployment
+- **Drive Integration**: Push content directly from Google Drive or OneDrive links
 
 ## Architecture
 
@@ -116,6 +117,37 @@ response = requests.post(
 
 print(response.json())
 # Returns: {"message": "Content push initiated", "push_id": "uuid", ...}
+```
+
+### Push from Google Drive or OneDrive
+
+```python
+import requests
+
+drive_data = {
+    "file_url": "https://drive.google.com/file/d/FILE_ID/view?usp=sharing",
+    "platform": "google_drive",
+    "content": {
+        "learner_id": "student123",
+        "learner_name": "John Doe",
+        "learner_email": "john.doe@university.edu",
+        "content_id": "drive-file",
+        "content_type": "project",
+        "title": "My Drive File",
+        "content_url": "",  # will be filled automatically
+        "submission_date": "2024-07-30T10:30:00Z"
+    },
+    "destination": "main_lrs",
+    "force_push": false
+}
+
+response = requests.post(
+    "https://your-service.railway.app/push-from-drive",
+    json=drive_data,
+    headers={"Authorization": "Bearer your-api-token"}
+)
+
+print(response.json())
 ```
 
 ### Create Filter Rules

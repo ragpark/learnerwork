@@ -13,6 +13,7 @@ import json
 import httpx
 import asyncio
 import os
+import re
 from dataclasses import dataclass, asdict
 from enum import Enum
 import logging
@@ -101,6 +102,30 @@ class PushRequest(BaseModel):
     content: LearnerContent
     destination: str
     force_push: bool = False
+
+class DrivePlatform(str, Enum):
+    GOOGLE_DRIVE = "google_drive"
+    ONE_DRIVE = "one_drive"
+
+class DrivePushRequest(BaseModel):
+    file_url: str
+    platform: DrivePlatform
+    content: LearnerContent
+    destination: str
+    force_push: bool = False
+
+def convert_drive_link(url: str, platform: DrivePlatform) -> str:
+    """Convert shared drive link to direct download link."""
+    if platform == DrivePlatform.GOOGLE_DRIVE:
+        match = re.search(r"/d/([\w-]+)", url)
+        if match:
+            file_id = match.group(1)
+            return f"https://drive.google.com/uc?export=download&id={file_id}"
+    elif platform == DrivePlatform.ONE_DRIVE:
+        if "download=1" not in url:
+            separator = "&" if "?" in url else "?"
+            return url + separator + "download=1"
+    return url
 
 class XAPIStatement(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -587,6 +612,32 @@ async def push_content(
         "statement_id": statement.id,
         "filter_reason": reason
     }
+
+@app.post("/push-from-drive")
+async def push_from_drive(
+    request: DrivePushRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    token: str = Depends(verify_token)
+):
+    """Push content referenced by a Google Drive or OneDrive link."""
+
+    direct_url = convert_drive_link(request.file_url, request.platform)
+    request.content.content_url = direct_url
+
+    # Reuse the existing push logic
+    push_req = PushRequest(
+        content=request.content,
+        destination=request.destination,
+        force_push=request.force_push,
+    )
+
+    return await push_content(
+        push_req,
+        background_tasks,
+        db,
+        token,
+    )
 
 async def execute_push(push_id: str, statement: XAPIStatement, content: LearnerContent, destination: str):
     """Execute the actual push in background"""
