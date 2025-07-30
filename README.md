@@ -27,10 +27,23 @@ deploying the app.
 python app.py
 ```
 
+Visit `http://localhost:8080/launch` to initiate a sample Deep Linking session
+and open the picker interface.
+
 4. Expose with ngrok (optional for LMS testing):
 
 ```bash
-ngrok http 5000
+ngrok http 8080
+```
+
+Set `PORT` and `HOST` environment variables if deploying to a platform like Railway. By default the app runs on `0.0.0.0:8080`.
+
+### Testing
+
+Run the automated tests with:
+
+```bash
+pytest
 ```
 
 Set `PORT` and `HOST` environment variables if deploying to a platform like Railway. By default the app runs on `0.0.0.0:5000`.
@@ -47,6 +60,7 @@ pytest
 
 - `/oidc/initiate`: Placeholder for OIDC login
 - `/lti/launch`: Accepts LTI launches, renders content picker
+- `/launch`: Generates a sample launch JWT and redirects to the picker
 - `/deep_link_picker`: Submits selected artefact to LMS
 - `/.well-known/jwks.json`: Publishes public key for LTI validation
 

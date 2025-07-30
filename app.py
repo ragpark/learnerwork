@@ -19,6 +19,26 @@ PRIVATE_KEY = PRIVATE_KEY_PATH.read_text()
 PUBLIC_KEY = PUBLIC_KEY_PATH.read_text()
 KID = "sample-key-id"
 
+def create_launch_jwt():
+    now = datetime.datetime.utcnow()
+    payload = {
+        "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingRequest",
+        "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+        "https://purl.imsglobal.org/spec/lti/claim/deep_linking_settings": {
+            "deep_link_return_url": "http://example.com/return"
+        },
+        "iss": "test",
+        "aud": "client",
+        "exp": now + datetime.timedelta(minutes=5),
+    }
+    return jwt.encode(payload, PRIVATE_KEY, algorithm="RS256", headers={"kid": KID})
+
+
+@app.route("/launch")
+def launch_page():
+    token = create_launch_jwt()
+    return render_template("launch.html", token=token)
+
 @app.route("/oidc/initiate")
 def oidc_initiate():
     # Redirect user back to the LMS authorization URL
@@ -92,6 +112,7 @@ def jwks():
     return jsonify({"keys": [jwk]})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+
+    port = int(os.environ.get("PORT", 8080))
     host = os.environ.get("HOST", "0.0.0.0")
     app.run(debug=True, host=host, port=port)

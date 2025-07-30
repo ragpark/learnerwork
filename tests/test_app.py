@@ -65,6 +65,13 @@ def test_oidc_initiate(client):
     assert resp.status_code == 200
     assert b"OIDC flow not fully implemented" in resp.data
 
+
+def test_launch_page(client):
+    resp = client.get("/launch")
+    assert resp.status_code == 200
+    assert b"Launch LTI Deep Link" in resp.data
+
+
 def test_launch_missing_token(client):
     resp = client.post("/lti/launch")
     assert resp.status_code == 400
