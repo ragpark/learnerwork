@@ -36,14 +36,14 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Copy environment template
-cp .env.example .env
+cp config/env.example .env
 # Edit .env with your configuration
 
 # Run with Docker Compose (recommended)
 docker-compose up
 
 # Or run directly
-uvicorn main:app --reload
+uvicorn lms-content-push.main:app --reload
 ```
 
 ### 2. Railway.app Deployment
@@ -401,7 +401,7 @@ class AdvancedContentFilter(ContentFilter):
 ```bash
 # Enable debug logging
 export LOG_LEVEL=DEBUG
-uvicorn main:app --log-level debug
+uvicorn lms-content-push.main:app --log-level debug
 ```
 
 ## Contributing
