@@ -358,7 +358,7 @@ TEST_INTERFACE_HTML = """<!DOCTYPE html>
                     </div>
                     <div class="form-group">
                         <label for="apiToken">API Token</label>
-                        <input type="password" id="apiToken" value="dev-token-123" placeholder="Your API token">
+                        <input type="password" id="apiToken" placeholder="Your API token">
                     </div>
                 </div>
                 <button class="btn" onclick="testConnection()">Test Connection</button>
@@ -518,7 +518,9 @@ def get_db():
 
 # Simple auth check (replace with proper auth in production)
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    expected_token = os.getenv("API_TOKEN", "dev-token-123")
+    expected_token = os.getenv("API_TOKEN")
+    if not expected_token:
+        raise RuntimeError("API_TOKEN environment variable not set")
     if credentials.credentials != expected_token:
         raise HTTPException(status_code=401, detail="Invalid authentication token")
     return credentials.credentials
