@@ -1,1 +1,11 @@
+[build]
+builder = "dockerfile"
 
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "lms-content-push"
