@@ -64,6 +64,8 @@ uvicorn main:app --reload
 3. **Add Database**
    - Add PostgreSQL plugin in Railway dashboard
    - DATABASE_URL will be automatically set
+   - If setting manually, use a full connection string such as:
+     `postgresql://user:password@host:5432/database`
 
 4. **Deploy**
    - Push to main branch triggers automatic deployment
