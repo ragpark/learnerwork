@@ -2,12 +2,21 @@ from flask import Flask, request, redirect, render_template, jsonify
 import jwt
 import datetime
 from pathlib import Path
+import os
 
 app = Flask(__name__)
 
 # Load RSA keys
-PRIVATE_KEY = Path("keys/private.key").read_text()
-PUBLIC_KEY = Path("keys/public.key").read_text()
+PRIVATE_KEY_PATH = Path("keys/private.key")
+PUBLIC_KEY_PATH = Path("keys/public.key")
+
+if not PRIVATE_KEY_PATH.exists() or not PUBLIC_KEY_PATH.exists():
+    raise FileNotFoundError(
+        "Key files not found. Generate them in the 'keys/' directory as described in the README."
+    )
+
+PRIVATE_KEY = PRIVATE_KEY_PATH.read_text()
+PUBLIC_KEY = PUBLIC_KEY_PATH.read_text()
 KID = "sample-key-id"
 
 @app.route("/oidc/initiate")
@@ -83,4 +92,6 @@ def jwks():
     return jsonify({"keys": [jwk]})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    app.run(debug=True, host=host, port=port)
