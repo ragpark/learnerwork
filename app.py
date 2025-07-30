@@ -2,13 +2,42 @@ from flask import Flask, request, redirect, render_template, jsonify
 import jwt
 import datetime
 from pathlib import Path
+import os
 
 app = Flask(__name__)
 
 # Load RSA keys
-PRIVATE_KEY = Path("keys/private.key").read_text()
-PUBLIC_KEY = Path("keys/public.key").read_text()
+PRIVATE_KEY_PATH = Path("keys/private.key")
+PUBLIC_KEY_PATH = Path("keys/public.key")
+
+if not PRIVATE_KEY_PATH.exists() or not PUBLIC_KEY_PATH.exists():
+    raise FileNotFoundError(
+        "Key files not found. Generate them in the 'keys/' directory as described in the README."
+    )
+
+PRIVATE_KEY = PRIVATE_KEY_PATH.read_text()
+PUBLIC_KEY = PUBLIC_KEY_PATH.read_text()
 KID = "sample-key-id"
+
+def create_launch_jwt():
+    now = datetime.datetime.utcnow()
+    payload = {
+        "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingRequest",
+        "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+        "https://purl.imsglobal.org/spec/lti/claim/deep_linking_settings": {
+            "deep_link_return_url": "http://example.com/return"
+        },
+        "iss": "test",
+        "aud": "client",
+        "exp": now + datetime.timedelta(minutes=5),
+    }
+    return jwt.encode(payload, PRIVATE_KEY, algorithm="RS256", headers={"kid": KID})
+
+
+@app.route("/launch")
+def launch_page():
+    token = create_launch_jwt()
+    return render_template("launch.html", token=token)
 
 @app.route("/oidc/initiate")
 def oidc_initiate():
@@ -83,4 +112,6 @@ def jwks():
     return jsonify({"keys": [jwk]})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    host = os.environ.get("HOST", "0.0.0.0")
+    app.run(debug=True, host=host, port=port)

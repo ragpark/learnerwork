@@ -1,0 +1,5 @@
+# Ignore generated RSA keys
+keys/private.key
+keys/public.key
+__pycache__/
+.env
