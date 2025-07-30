@@ -1,1 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Content Push - Standalone Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #f5f5f5; 
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        h1 { 
+            color: #2c3e50; 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold; 
+        }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            font-size: 14px; 
+        }
+        .form-row { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+        }
+        .btn { 
+            background: #3498db; 
+            color: white; 
+            padding: 12px 20px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            margin-right: 10px; 
+        }
+        .btn:hover { 
+            background: #2980b9; 
+        }
+        .btn-secondary { 
+            background: #95a5a6; 
+        }
+        .response { 
+            background: #f8f9fa; 
+            border: 1px solid #e9ecef; 
+            padding: 20px; 
+            margin-top: 20px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            white-space: pre-wrap; 
+            max-height: 400px; 
+            overflow-y: auto; 
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+        }
+        .status.success { 
+            background: #d4edda; 
+            color: #155724; 
+        }
+        .status.error { 
+            background: #f8d7da; 
+            color: #721c24; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 LMS Content Push Service - Test Interface</h1>
+        
+        <div class="form-group">
+            <label for="apiUrl">API Base URL</label>
+            <input type="url" id="apiUrl" placeholder="https://your-project.railway.app">
+        </div>
+        
+        <div class="form-group">
+            <label for="apiToken">API Token</label>
+            <input type="password" id="apiToken" placeholder="Your API token">
+        </div>
+        
+        <button class="btn" onclick="testConnection()">Test Connection</button>
+        <div id="connectionStatus"></div>
+        
+        <hr style="margin: 30px 0;">
+        
+        <h2>Quick Content Push Test</h2>
+        <form id="testForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="learnerName">Student Name</label>
+                    <input type="text" id="learnerName" value="Test Student" required>
+                </div>
+                <div class="form-group">
+                    <label for="learnerEmail">Student Email</label>
+                    <input type="email" id="learnerEmail" value="test@university.edu" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="contentTitle">Content Title</label>
+                    <input type="text" id="contentTitle" value="Sample Assignment" required>
+                </div>
+                <div class="form-group">
+                    <label for="contentType">Content Type</label>
+                    <select id="contentType" required>
+                        <option value="essay">Essay</option>
+                        <option value="video">Video</option>
+                        <option value="audio">Audio</option>
+                        <option value="presentation">Presentation</option>
+                        <option value="code">Code</option>
+                        <option value="quiz">Quiz</option>
+                        <option value="project">Project</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="grade">Grade</label>
+                    <select id="grade">
+                        <option value="">No grade</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="F">F</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="destination">Destination</label>
+                    <select id="destination">
+                        <option value="main_lrs">Main LRS</option>
+                        <option value="analytics_webhook">Analytics Webhook</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tags">Tags (comma-separated)</label>
+                <input type="text" id="tags" value="test, web-interface" placeholder="tag1, tag2, tag3">
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" rows="3">Test submission via standalone interface</textarea>
+            </div>
+            
+            <button type="submit" class="btn">🚀 Push Content</button>
+            <button type="button" class="btn btn-secondary" onclick="generateSample()">🎲 Generate Sample</button>
+            <button type="button" class="btn btn-secondary" onclick="clearForm()">🧹 Clear Form</button>
+        </form>
+        
+        <div id="response" class="response" style="display: none;"></div>
+    </div>
 
+    <script>
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${document.getElementById('apiToken').value}`
+            };
+        }
+
+        async function testConnection() {
+            const apiUrl = document.getElementById('apiUrl').value.replace(/\/$/, '');
+            const status = document.getElementById('connectionStatus');
+            
+            if (!apiUrl) {
+                status.innerHTML = '<div class="status error">Please enter API URL</div>';
+                return;
+            }
+            
+            status.innerHTML = '<div class="status">Testing connection...</div>';
+            
+            try {
+                const response = await fetch(`${apiUrl}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    status.innerHTML = `<div class="status success">✅ Connected! Status: ${data.status}</div>`;
+                } else {
+                    status.innerHTML = `<div class="status error">❌ Connection failed: ${response.status}</div>`;
+                }
+            } catch (error) {
+                status.innerHTML = `<div class="status error">❌ Connection failed: ${error.message}</div>`;
+            }
+        }
+
+        function generateSample() {
+            const samples = [
+                {
+                    name: "Alice Johnson",
+                    email: "alice.johnson@university.edu",
+                    title: "AI Ethics in Healthcare Research",
+                    type: "essay",
+                    grade: "A",
+                    tags: "final-project, ethics, healthcare, ai",
+                    description: "Comprehensive analysis of ethical considerations in AI healthcare applications"
+                },
+                {
+                    name: "Bob Chen",
+                    email: "bob.chen@university.edu", 
+                    title: "Climate Change Solutions Presentation",
+                    type: "presentation",
+                    grade: "B",
+                    tags: "presentation, climate, sustainability, research",
+                    description: "Interactive presentation on innovative climate change mitigation strategies"
+                },
+                {
+                    name: "Carol Martinez",
+                    email: "carol.martinez@university.edu",
+                    title: "React Portfolio Website Project",
+                    type: "project",
+                    grade: "A",
+                    tags: "coding, web-development, react, portfolio, final",
+                    description: "Full-stack web application demonstrating modern development practices"
+                }
+            ];
+            
+            const sample = samples[Math.floor(Math.random() * samples.length)];
+            
+            document.getElementById('learnerName').value = sample.name;
+            document.getElementById('learnerEmail').value = sample.email;
+            document.getElementById('contentTitle').value = sample.title;
+            document.getElementById('contentType').value = sample.type;
+            document.getElementById('grade').value = sample.grade;
+            document.getElementById('tags').value = sample.tags;
+            document.getElementById('description').value = sample.description;
+        }
+
+        function clearForm() {
+            document.getElementById('testForm').reset();
+            document.getElementById('response').style.display = 'none';
+        }
+
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const apiUrl = document.getElementById('apiUrl').value.replace(/\/$/, '');
+            const apiToken = document.getElementById('apiToken').value;
+            
+            if (!apiUrl || !apiToken) {
+                alert('Please enter API URL and token first');
+                return;
+            }
+            
+            const tags = document.getElementById('tags').value
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag);
+            
+            const contentData = {
+                content: {
+                    learner_id: `test_${Date.now()}`,
+                    learner_name: document.getElementById('learnerName').value,
+                    learner_email: document.getElementById('learnerEmail').value,
+                    content_id: `test_content_${Date.now()}`,
+                    content_type: document.getElementById('contentType').value,
+                    title: document.getElementById('contentTitle').value,
+                    description: document.getElementById('description').value,
+                    content_url: `https://example.com/content/${Date.now()}.pdf`,
+                    submission_date: new Date().toISOString(),
+                    grade: document.getElementById('grade').value || null,
+                    tags: tags,
+                    metadata: {
+                        source: 'standalone-test-interface',
+                        timestamp: new Date().toISOString()
+                    }
+                },
+                destination: document.getElementById('destination').value,
+                force_push: true
+            };
+            
+            const responseDiv = document.getElementById('response');
+            responseDiv.style.display = 'block';
+            responseDiv.textContent = 'Pushing content...';
+            
+            try {
+                const response = await fetch(`${apiUrl}/push-content`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiToken}`
+                    },
+                    body: JSON.stringify(contentData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    responseDiv.textContent = `✅ SUCCESS!\n\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.style.backgroundColor = '#d4edda';
+                    responseDiv.style.color = '#155724';
+                } else {
+                    responseDiv.textContent = `❌ ERROR!\n\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.style.backgroundColor = '#f8d7da';
+                    responseDiv.style.color = '#721c24';
+                }
+            } catch (error) {
+                responseDiv.textContent = `❌ NETWORK ERROR!\n\n${error.message}`;
+                responseDiv.style.backgroundColor = '#f8d7da';
+                responseDiv.style.color = '#721c24';
+            }
+        });
+
+        // Initialize with sample data
+        generateSample();
+    </script>
+</body>
+</html>
