@@ -156,7 +156,21 @@
                     </select>
                 </div>
             </div>
-            
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="driveUrl">Drive Share Link</label>
+                    <input type="url" id="driveUrl" placeholder="https://drive.google.com/...">
+                </div>
+                <div class="form-group">
+                    <label for="drivePlatform">Platform</label>
+                    <select id="drivePlatform">
+                        <option value="google_drive">Google Drive</option>
+                        <option value="one_drive">OneDrive</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="tags">Tags (comma-separated)</label>
                 <input type="text" id="tags" value="test, web-interface" placeholder="tag1, tag2, tag3">
@@ -168,6 +182,7 @@
             </div>
             
             <button type="submit" class="btn">🚀 Push Content</button>
+            <button type="button" class="btn" onclick="pushFromDrive()">📂 Push From Drive</button>
             <button type="button" class="btn btn-secondary" onclick="generateSample()">🎲 Generate Sample</button>
             <button type="button" class="btn btn-secondary" onclick="clearForm()">🧹 Clear Form</button>
         </form>
@@ -324,6 +339,83 @@
                 responseDiv.style.color = '#721c24';
             }
         });
+
+        async function pushFromDrive() {
+            const apiUrl = document.getElementById('apiUrl').value.replace(/\/$/, '');
+            const apiToken = document.getElementById('apiToken').value;
+            const driveUrl = document.getElementById('driveUrl').value;
+
+            if (!apiUrl || !apiToken) {
+                alert('Please enter API URL and token first');
+                return;
+            }
+
+            if (!driveUrl) {
+                alert('Please enter a drive share link');
+                return;
+            }
+
+            const tags = document.getElementById('tags').value
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag);
+
+            const content = {
+                learner_id: `test_${Date.now()}`,
+                learner_name: document.getElementById('learnerName').value,
+                learner_email: document.getElementById('learnerEmail').value,
+                content_id: `test_content_${Date.now()}`,
+                content_type: document.getElementById('contentType').value,
+                title: document.getElementById('contentTitle').value,
+                description: document.getElementById('description').value,
+                submission_date: new Date().toISOString(),
+                grade: document.getElementById('grade').value || null,
+                tags: tags,
+                metadata: {
+                    source: 'standalone-test-interface',
+                    timestamp: new Date().toISOString()
+                }
+            };
+
+            const payload = {
+                file_url: driveUrl,
+                platform: document.getElementById('drivePlatform').value,
+                content: content,
+                destination: document.getElementById('destination').value,
+                force_push: true
+            };
+
+            const responseDiv = document.getElementById('response');
+            responseDiv.style.display = 'block';
+            responseDiv.textContent = 'Pushing content from drive...';
+
+            try {
+                const response = await fetch(`${apiUrl}/push-from-drive`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiToken}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    responseDiv.textContent = `✅ SUCCESS!\n\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.style.backgroundColor = '#d4edda';
+                    responseDiv.style.color = '#155724';
+                } else {
+                    responseDiv.textContent = `❌ ERROR!\n\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.style.backgroundColor = '#f8d7da';
+                    responseDiv.style.color = '#721c24';
+                }
+            } catch (error) {
+                responseDiv.textContent = `❌ NETWORK ERROR!\n\n${error.message}`;
+                responseDiv.style.backgroundColor = '#f8d7da';
+                responseDiv.style.color = '#721c24';
+            }
+        }
 
         // Initialize with sample data
         generateSample();
