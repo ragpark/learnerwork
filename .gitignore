@@ -3,3 +3,4 @@ keys/private.key
 keys/public.key
 __pycache__/
 .env
+lms_push.db
